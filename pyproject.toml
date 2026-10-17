@@ -1,0 +1,13 @@
+[project]
+name = "nexus-forge"
+version = "0.1.0"
+description = "Agentic skills framework: plan ledger with ML outcome classification."
+authors = [{ name = "Alan Vo", email = "alanvo@gmail.com" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
+addopts = "-q"

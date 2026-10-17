@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "nexus-forge-alan-vo",
+  "owner": "ALANDVO",
+  "email": "alanvo@gmail.com",
+  "domain": "AI/ML developer tools",
+  "summary": "Work in progress: nexus-forge-alan-vo",
+  "workflows": [
+    "Decompose a markdown plan into ordered, addressable tasks",
+    "Execute a task against a bounded command and classify the outcome from captured logs",
+    "Query, filter and export the durable outcome ledger"
+  ],
+  "auth": "oidc-keycloak-saml-broker",
+  "llm_providers": [
+    "openai-compatible",
+    "anthropic",
+    "gemini",
+    "ollama"
+  ],
+  "status": "work-in-progress"
+}

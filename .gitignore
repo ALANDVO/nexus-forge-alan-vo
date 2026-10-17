@@ -1,0 +1,29 @@
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.mypy_cache/
+.ruff_cache/
+
+# Local data / databases (never committed)
+*.db
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+backend/app/data/
+
+# Environment / secrets
+.env
+*.local
+
+# Agent-local metadata (not product source)
+.omp/
+.antigravitycli/
+
+# Editor / OS
+*.swp
+.DS_Store
