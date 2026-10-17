@@ -1,0 +1,59 @@
+services:
+  # -------------------------------------------------------------------
+  # API + dashboard (always on). Auth is a planned milestone; this compose
+  # exposes them unauthenticated on loopback only. In production, front the
+  # API with an OIDC gateway (see README "Security").
+  # -------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      NEXUS_ENV: dev
+      NEXUS_DEMO: "1"
+      NEXUS_DB_PATH: /data/ledger.sqlite
+    volumes:
+      - db-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "127.0.0.1:5123:80"
+    profiles: ["frontend"]
+
+  # -------------------------------------------------------------------
+  # Keycloak is wired up under the explicit "auth" profile for the
+  # future auth-oidc milestone (state/nonce/PKCE + role enforcement). It is
+  # NOT started by default:  docker compose --profile auth up
+  # -------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?set KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?set KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: dev-file
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./realm-export:/opt/keycloak/data/import
+    profiles: ["auth"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/realms/master"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:
+  keycloak-data:
