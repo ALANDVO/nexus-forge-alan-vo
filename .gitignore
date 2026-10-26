@@ -27,3 +27,4 @@ backend/app/data/
 # Editor / OS
 *.swp
 .DS_Store
+venv/
