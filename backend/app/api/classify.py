@@ -1,9 +1,10 @@
 """ML classifier inspection and evaluation endpoints (opt-in, advisory)."""
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from ..api.auth import require_viewer
 from ..core import classifier
 
 router = APIRouter(prefix="/classify", tags=["classifier"])
@@ -36,7 +37,10 @@ class MetricsResponse(BaseModel):
 
 
 @router.post("", response_model=ClassifyResponse)
-def classify(body: ClassifyRequest):
+def classify(
+    body: ClassifyRequest,
+    _user=Depends(require_viewer),
+):
     label, passed, confidence, agreement = classifier.classify_outcome(
         exit_code=None, log_text=body.text
     )
@@ -44,14 +48,18 @@ def classify(body: ClassifyRequest):
 
 
 @router.get("/metrics", response_model=MetricsResponse)
-def metrics():
+def metrics(
+    _user=Depends(require_viewer),
+):
     m = classifier.evaluate()
     m["dataset_size"] = len(classifier.DATASET)
     return MetricsResponse(**m)
 
 
 @router.get("/dataset")
-def dataset():
+def dataset(
+    _user=Depends(require_viewer),
+):
     """Return the bundled labeled dataset (provenance transparency)."""
     return {"size": len(classifier.DATASET), "items": [
         {"text": t, "label": "passed" if l == 1 else "failed"} for t, l in classifier.DATASET

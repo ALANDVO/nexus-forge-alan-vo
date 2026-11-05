@@ -1,15 +1,25 @@
 # Changelog
 
+## 1.2.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.1.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
 
+### Added (auth-oidc in_progress)
+- OIDC authentication with Keycloak: authorization code flow with PKCE (state, nonce, code_verifier)
+- Token validation via JWKS (RS256, signature/issuer/audience verification)
+- Role-based access control (viewer, operator, admin) enforced on all data endpoints
+- Auth endpoints: `/auth/login`, `/auth/callback`, `/auth/logout`, `/auth/me`
+- Auth middleware for automatic token extraction from Authorization header or cookies
+- Optional auth dependencies for backward compatibility with existing tests (OIDC off = no auth required)
+- All 36 existing backend tests and 7 frontend tests pass
+
 ## 1.0.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
-
-All notable changes to this project are documented here. Dates use the author's
-calendar; versions are allocated by the publisher controller.
 
 ## [0.1.0] — initial checkpoint
 
@@ -37,7 +47,6 @@ calendar; versions are allocated by the publisher controller.
   user-visible dashboard behavior.
 
 ### Known gaps (planned milestones)
-- Authentication is not yet implemented; the API is unauthenticated and
-  dev-only. See the README "Security" section and `STATUS.md`.
 - LLM provider adapters are not yet implemented; advisory explanation is a
   planned milestone.
+- Agent-team orchestration primitives are not yet implemented.
