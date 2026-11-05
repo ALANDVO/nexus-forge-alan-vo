@@ -5,14 +5,29 @@ Docker and local commands use the same entrypoint:
 """
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api import auth as auth_api
 from .api import classify as classify_api
 from .api import plans as plans_api
 from .api import tasks as tasks_api
+from .auth.middleware import AuthMiddleware
+from .auth.oidc import OIDCConfig, TokenValidator, set_token_validator
 from .config import settings
 from .services.storage import Storage
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: initialize OIDC token validator if configured
+    oidc_config = OIDCConfig.from_env()
+    if oidc_config:
+        set_token_validator(TokenValidator(oidc_config))
+    yield
+    # Shutdown
+    app.state.storage.close()
 
 
 def create_app(db_path: str | None = None) -> FastAPI:
@@ -20,6 +35,7 @@ def create_app(db_path: str | None = None) -> FastAPI:
         title="Nexus Forge",
         description="Agentic skills framework: plan ledger with ML outcome classification.",
         version=settings.version,
+        lifespan=lifespan,
     )
 
     app.state.storage = Storage(db_path=db_path or settings.db_path)
@@ -32,6 +48,10 @@ def create_app(db_path: str | None = None) -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Add auth middleware
+    app.add_middleware(AuthMiddleware)
+
+    app.include_router(auth_api.router)
     app.include_router(plans_api.router)
     app.include_router(tasks_api.router)
     app.include_router(classify_api.router)
@@ -39,10 +59,6 @@ def create_app(db_path: str | None = None) -> FastAPI:
     @app.get("/health")
     def health(request: Request):
         return {"status": "ok", "version": settings.version, "db": "ok"}
-
-    @app.on_event("shutdown")
-    def _shutdown():
-        app.state.storage.close()
 
     return app
 

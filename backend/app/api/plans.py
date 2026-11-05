@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
+from ..api.auth import require_viewer, require_operator
 from ..services.ledger import PlanService, Services, get_services
 
 router = APIRouter(prefix="/plans", tags=["plans"])
@@ -47,7 +48,11 @@ class PagedPlans(BaseModel):
 
 
 @router.post("", response_model=PlanResponse, status_code=status.HTTP_201_CREATED)
-def create_plan(body: PlanCreate, services: Services = Depends(get_services)):
+def create_plan(
+    body: PlanCreate,
+    services: Services = Depends(get_services),
+    _user=Depends(require_operator),
+):
     svc = PlanService(services.storage)
     plan = svc.create(name=body.name, text=body.text, actor="api")
     return _plan_response(plan)
@@ -59,6 +64,7 @@ def list_plans(
     offset: int = Query(0, ge=0),
     name: Optional[str] = Query(None),
     services: Services = Depends(get_services),
+    _user=Depends(require_viewer),
 ):
     rows = services.storage.list_plans(limit=limit, offset=offset, name=name)
     total = services.storage.count_plans()
@@ -68,13 +74,22 @@ def list_plans(
 
 
 @router.get("/{plan_id}", response_model=PlanDetailResponse)
-def get_plan(plan_id: str, services: Services = Depends(get_services)):
+def get_plan(
+    plan_id: str,
+    services: Services = Depends(get_services),
+    _user=Depends(require_viewer),
+):
     plan = services.storage.get_plan(plan_id)
     if plan is None:
         raise HTTPException(status_code=404, detail=f"plan not found: {plan_id}")
     return PlanDetailResponse(
-        id=plan.id, name=plan.name, status=plan.status.value, task_count=plan.task_count,
-        created_at=plan.created_at, updated_at=plan.updated_at, text=plan.text,
+        id=plan.id,
+        name=plan.name,
+        status=plan.status.value,
+        task_count=plan.task_count,
+        created_at=plan.created_at,
+        updated_at=plan.updated_at,
+        text=plan.text,
         tasks=[TaskResponse(id=t.id, title=t.title, body=t.body, status=t.status.value, order=t.order)
                for t in plan.tasks],
     )
@@ -82,6 +97,10 @@ def get_plan(plan_id: str, services: Services = Depends(get_services)):
 
 def _plan_response(plan):
     return PlanResponse(
-        id=plan.id, name=plan.name, status=plan.status.value, task_count=plan.task_count,
-        created_at=plan.created_at, updated_at=plan.updated_at,
+        id=plan.id,
+        name=plan.name,
+        status=plan.status.value,
+        task_count=plan.task_count,
+        created_at=plan.created_at,
+        updated_at=plan.updated_at,
     )

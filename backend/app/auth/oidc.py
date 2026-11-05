@@ -220,3 +220,18 @@ def build_logout_url(config: OIDCConfig, post_logout_redirect_uri: str = "") -> 
     if post_logout_redirect_uri:
         params["post_logout_redirect_uri"] = post_logout_redirect_uri
     return f"{config.issuer.rstrip('/')}/protocol/openid-connect/logout?{urlencode(params)}"
+
+
+_validator: Optional[TokenValidator] = None
+
+
+def get_token_validator() -> Optional[TokenValidator]:
+    """Get the singleton TokenValidator instance."""
+    global _validator
+    return _validator
+
+
+def set_token_validator(validator: Optional[TokenValidator]) -> None:
+    """Set the singleton TokenValidator instance."""
+    global _validator
+    _validator = validator

@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 
+from ..api.auth import require_operator, require_viewer
 from ..models.plan import Filter
 from ..services.ledger import RunService, Services, get_services
 
@@ -62,7 +63,12 @@ class PagedResults(BaseModel):
 
 
 @router.post("/tasks/{task_id}/run", response_model=OutcomeResponse, status_code=status.HTTP_200_OK)
-def run_task(task_id: str, body: RunCommand, services: Services = Depends(get_services)):
+def run_task(
+    task_id: str,
+    body: RunCommand,
+    services: Services = Depends(get_services),
+    _user=Depends(require_operator),
+):
     svc = RunService(services.storage)
     try:
         outcome = svc.run(task_id=task_id, command=body.command, actor="api", timeout=body.timeout)
@@ -74,7 +80,11 @@ def run_task(task_id: str, body: RunCommand, services: Services = Depends(get_se
 
 
 @router.get("/tasks/{task_id}")
-def get_task(task_id: str, services: Services = Depends(get_services)):
+def get_task(
+    task_id: str,
+    services: Services = Depends(get_services),
+    _user=Depends(require_viewer),
+):
     task = services.storage.get_task(task_id)
     if task is None:
         raise HTTPException(status_code=404, detail=f"task not found: {task_id}")
@@ -83,7 +93,11 @@ def get_task(task_id: str, services: Services = Depends(get_services)):
 
 
 @router.get("/tasks/{task_id}/result", response_model=OutcomeResponse)
-def get_result(task_id: str, services: Services = Depends(get_services)):
+def get_result(
+    task_id: str,
+    services: Services = Depends(get_services),
+    _user=Depends(require_viewer),
+):
     outcome = services.storage.outcomes_for_task(task_id)
     if outcome is None:
         raise HTTPException(status_code=404, detail=f"no outcome recorded: {task_id}")
@@ -98,6 +112,7 @@ def list_results(
     label: Optional[str] = Query(None),
     q: Optional[str] = Query(None),
     services: Services = Depends(get_services),
+    _user=Depends(require_viewer),
 ):
     f = Filter(plan_id=plan_id, label=label, q=q, limit=limit, offset=offset)
     rows, total = services.storage.list_outcomes(f)
@@ -110,6 +125,7 @@ def export_results(
     plan_id: Optional[str] = Query(None),
     label: Optional[str] = Query(None),
     services: Services = Depends(get_services),
+    _user=Depends(require_viewer),
 ):
     rows, _total = services.storage.list_outcomes(
         Filter(plan_id=plan_id, label=label, q=None, limit=100000, offset=0)
@@ -124,8 +140,15 @@ def export_results(
 
 def _outcome_response(outcome):
     return OutcomeResponse(
-        task_id=outcome.task_id, plan_id=outcome.plan_id, label=outcome.label,
-        passed=outcome.passed, confidence=outcome.confidence, agreement=outcome.agreement,
-        exit_code=outcome.exit_code, duration_ms=outcome.duration_ms,
-        last_line=outcome.last_line, head=outcome.head, created_at=outcome.created_at,
+        task_id=outcome.task_id,
+        plan_id=outcome.plan_id,
+        label=outcome.label,
+        passed=outcome.passed,
+        confidence=outcome.confidence,
+        agreement=outcome.agreement,
+        exit_code=outcome.exit_code,
+        duration_ms=outcome.duration_ms,
+        last_line=outcome.last_line,
+        head=outcome.head,
+        created_at=outcome.created_at,
     )
