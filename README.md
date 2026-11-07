@@ -232,4 +232,4 @@ Copyright © 2026 Alan Vo <alanvo@gmail.com> · Released under the MIT License.
 
 ---
 
-Alan Vo · [alanvo.net](https://alanvo.net)
+Alan Vo · [alanvo.net](https://alanvo.net) · [X: @alanvoasi](https://x.com/alanvoasi)

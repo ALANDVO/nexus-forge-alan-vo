@@ -69,4 +69,4 @@ commands return `400`. Errors use FastAPI's standard `{"detail": "..."}` shape.
 
 ---
 
-Alan Vo · [alanvo.net](https://alanvo.net)
+Alan Vo · [alanvo.net](https://alanvo.net) · [X: @alanvoasi](https://x.com/alanvoasi)
