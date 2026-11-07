@@ -38,7 +38,7 @@ Tests: `frontend/tests/api.test.ts`, `frontend/tests/dashboard.test.tsx`
 
 ### auth-oidc — Keycloak OIDC authorization-code login (state/nonce/PKCE) with role-based authorization
 
-Status: in_progress
+Status: done
 
 Acceptance:
 - Unauthenticated requests rejected on all data endpoints
@@ -47,7 +47,7 @@ Acceptance:
 
 Implementation: `backend/app/auth/oidc.py`, `backend/app/auth/middleware.py`, `backend/app/api/auth.py`, `backend/app/api/plans.py`, `backend/app/api/tasks.py`, `backend/app/api/classify.py`, `backend/app/main.py`
 
-Tests: `backend/tests/test_api.py`
+Tests: `backend/tests/test_auth.py`, `backend/tests/test_api.py`
 
 ### llm-adapters — Opt-in LLM providers (OpenAI-compatible, Anthropic, Gemini, Ollama) for advisory explanations
 
