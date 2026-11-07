@@ -63,3 +63,6 @@ Status: planned
 Acceptance:
 - Detect team context; scaffold teammate spawning and task assignment
 
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)

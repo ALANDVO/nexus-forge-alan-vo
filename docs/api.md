@@ -66,3 +66,7 @@ Request: `{ "text": "<runner log>" }` → `{ "label", "passed", "confidence", "a
 
 Validation failures return `422`; missing resources return `404`; malformed
 commands return `400`. Errors use FastAPI's standard `{"detail": "..."}` shape.
+
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)

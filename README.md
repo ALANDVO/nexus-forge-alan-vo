@@ -229,3 +229,7 @@ compose.yaml, backend/Dockerfile, frontend/Dockerfile
 ---
 
 Copyright © 2026 Alan Vo <alanvo@gmail.com> · Released under the MIT License.
+
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)

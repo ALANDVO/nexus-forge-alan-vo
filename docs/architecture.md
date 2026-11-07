@@ -58,3 +58,7 @@ hand-labeled dataset at startup.
 
 Round 1 omits authentication (planned milestone `auth-oidc`). Deployments must
 place the API behind an OIDC gateway. See README "Security".
+
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)

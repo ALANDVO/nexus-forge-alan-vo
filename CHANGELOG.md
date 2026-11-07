@@ -54,3 +54,7 @@ Partial code published for continued development. Known issues: STATUS.md.
 - LLM provider adapters are not yet implemented; advisory explanation is a
   planned milestone.
 - Agent-team orchestration primitives are not yet implemented.
+
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)
