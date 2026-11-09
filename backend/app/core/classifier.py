@@ -1,3 +1,4 @@
+
 """ML log-outcome classifier engine (the AI/ML core of Nexus Forge).
 
 A from-scratch bag-of-counts logistic-regression classifier trained on a
@@ -10,12 +11,13 @@ It solves the ledger-evidence problem from issue #2342: the raw runner tail for
 The classifier inspects the *whole* captured log, so the ledger records a
 meaningful ``passed``/``failed`` label rather than echoing the duration line.
 
-Feature engineering (4 real-valued features; a linear model over counts is a
+Feature engineering (5 real-valued features; a linear model over counts is a
 standard, honest baseline):
 - ``pass_n``  : largest test count paired with a success token
 - ``fail_n``  : largest test count paired with a failure token
 - ``success`` : 1 if any success token is present
 - ``failure`` : 1 if any failure token is present
+- ``skipped`` : 1 if any skip token is present (XPASS/XFAIL/SKIPPED)
 
 Exit code remains authoritative in orchestration; this classifier is advisory and
 surfaces conflicts (see README "AI/ML evaluation" for measured metrics and
@@ -36,14 +38,14 @@ DATASET: list[tuple[str, int]] = [
     ("# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 44.363458", 1),
     ("# pass 12\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 159.210958", 1),
     ("PASS (12 tests, 45ms)\n\nTest Suites: 1 passed, 1 total\nTests:       12 passed, 12 total", 1),
-    ("✓ 3 passed (48ms)\n\n  3 passing", 1),
-    ("✓ 10 passed (1.2s)\n\n  10 passing", 1),
+    ("\u2713 3 passed (48ms)\n\n  3 passing", 1),
+    ("\u2713 10 passed (1.2s)\n\n  10 passing", 1),
     ("ok 1 test passing\n", 1),
     ("ok 3 tests passing\n", 1),
     ("1 passing (2s)\n\n  1 passed", 1),
     ("All 5 tests passed\n\nPASS", 1),
-    ("PASS — 8 tests\n\nTest Suites: 1 passed", 1),
-    ("✓ 13 passing (52ms)", 1),
+    ("PASS \u2014 8 tests\n\nTest Suites: 1 passed", 1),
+    ("\u2713 13 passing (52ms)", 1),
     ("# pass 1\n# duration_ms 2.1\nok 1 test", 1),
     ("ok 1\n1 passing", 1),
     ("PASS 6 tests\n\n6 passing", 1),
@@ -52,15 +54,15 @@ DATASET: list[tuple[str, int]] = [
     ("# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 10.0", 0),
     ("# pass 11\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 88.1", 0),
     ("# pass 0\n# fail 3\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 31.2", 0),
-    ("✕ 2 failing (15ms)\n\n  2 failing", 0),
-    ("✕ 1 failing (3ms)\n\n  1 failing\n\nError: expect(received).toBe(expected)", 0),
+    ("\u2715 2 failing (15ms)\n\n  2 failing", 0),
+    ("\u2715 1 failing (3ms)\n\n  1 failing\n\nError: expect(received).toBe(expected)", 0),
     ("FAIL (12 tests, 2 failures)\n\nTest Suites: 1 failed\nTests:       2 failed, 10 passed", 0),
     ("not ok 1 test failed", 0),
     ("not ok 2 tests failed", 0),
     ("Error: expect(x).toBe(1)\nReceived: 2\n\n1 failing\n\n  1 failing", 0),
-    ("✕ 3 failing (50ms)", 0),
-    ("FAIL — 4 tests\n\nTests: 4 failed, 0 passed", 0),
-    ("× 2 failing (50ms)", 0),
+    ("\u2715 3 failing (50ms)", 0),
+    ("FAIL \u2014 4 tests\n\nTests: 4 failed, 0 passed", 0),
+    ("\u00d7 2 failing (50ms)", 0),
     ("Error: Command failed: jest\n\nTest suite failed to run", 0),
     ("# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 5.0\nnot ok 1", 0),
     ("not ok\n0 passing\n1 failing", 0),
@@ -68,8 +70,9 @@ DATASET: list[tuple[str, int]] = [
     ("Error: exit status 1\n\nCommand failed", 0),
 ]
 
-_SUCCESS_TOKENS = ("pass", "passing", "passed", " ok ", "✓", "✔", "success")
-_FAILURE_TOKENS = ("fail", "failing", "failed", "✕", "×", "error", "not ok", "failure")
+_SUCCESS_TOKENS = ("pass", "passing", "passed", " ok ", "\u2713", "\u2714", "success", "xpass")
+_FAILURE_TOKENS = ("fail", "failing", "failed", "\u2715", "\u00d7", "error", "not ok", "failure", "xfail")
+_SKIP_TOKENS = ("skipped", "skip", "xskip", "cancelled")
 _PASS_NUM_RE = re.compile(r"pass\s+(\d+)|(\d+)\s+passed|(\d+)\s+passing", re.IGNORECASE)
 _FAIL_NUM_RE = re.compile(r"fail\s+(\d+)|(\d+)\s+failing|(\d+)\s+failed|(\d+)\s+fail\b", re.IGNORECASE)
 
@@ -89,14 +92,15 @@ def _features(text: str) -> list[float]:
     fail_n = _max_group(_FAIL_NUM_RE, low)
     success = 1.0 if any(tok in low for tok in _SUCCESS_TOKENS) else 0.0
     failure = 1.0 if any(tok in low for tok in _FAILURE_TOKENS) else 0.0
-    return [float(pass_n), float(fail_n), success, failure]
+    skipped = 1.0 if any(tok in low for tok in _SKIP_TOKENS) else 0.0
+    return [float(pass_n), float(fail_n), success, failure, skipped]
 
 
 @dataclass
 class Model:
     weights: list[float]
     bias: float
-    feature_names: tuple[str, ...] = ("pass_n", "fail_n", "success", "failure")
+    feature_names: tuple[str, ...] = ("pass_n", "fail_n", "success", "failure", "skipped")
 
     def predict_log_odds(self, text: str) -> float:
         z = self.bias
