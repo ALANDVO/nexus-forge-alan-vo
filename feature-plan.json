@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "current_feature": "auth-oidc",
+  "current_feature": "classifier-extended-tokens",
   "features": [
     {
       "id": "plan-ledger-core",
@@ -77,6 +77,23 @@
       "tests": [
         "backend/tests/test_auth.py",
         "backend/tests/test_api.py"
+      ]
+    },
+    {
+      "id": "classifier-extended-tokens",
+      "title": "Extended classifier token support for XPASS/XFAIL/SKIPPED",
+      "status": "done",
+      "acceptance": [
+        "XPASS token recognized as success signal in pytest-style output",
+        "XFAIL token recognized as failure signal in pytest-style output",
+        "SKIPPED token recognized in test output",
+        "Classifier-conflict surfaced when exit code disagrees with XPASS/XFAIL tokens"
+      ],
+      "implementation": [
+        "backend/app/core/classifier.py"
+      ],
+      "tests": [
+        "backend/tests/test_classifier.py"
       ]
     },
     {

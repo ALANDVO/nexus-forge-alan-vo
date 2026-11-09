@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-auth-oidc
+classifier-extended-tokens
 
 ## Roadmap
 
@@ -48,6 +48,20 @@ Acceptance:
 Implementation: `backend/app/auth/oidc.py`, `backend/app/auth/middleware.py`, `backend/app/api/auth.py`, `backend/app/api/plans.py`, `backend/app/api/tasks.py`, `backend/app/api/classify.py`, `backend/app/main.py`
 
 Tests: `backend/tests/test_auth.py`, `backend/tests/test_api.py`
+
+### classifier-extended-tokens — Extended classifier token support for XPASS/XFAIL/SKIPPED
+
+Status: done
+
+Acceptance:
+- XPASS token recognized as success signal in pytest-style output
+- XFAIL token recognized as failure signal in pytest-style output
+- SKIPPED token recognized in test output
+- Classifier-conflict surfaced when exit code disagrees with XPASS/XFAIL tokens
+
+Implementation: `backend/app/core/classifier.py`
+
+Tests: `backend/tests/test_classifier.py`
 
 ### llm-adapters — Opt-in LLM providers (OpenAI-compatible, Anthropic, Gemini, Ollama) for advisory explanations
 
