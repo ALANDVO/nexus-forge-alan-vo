@@ -53,6 +53,7 @@ class Outcome:
     duration_ms: int = 0
     last_line: str = ""
     head: str = ""
+    advisory: str = ""
     created_at: Optional[str] = None
 
 
