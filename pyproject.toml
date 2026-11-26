@@ -1,6 +1,6 @@
 [project]
 name = "nexus-forge"
-version = "1.6.0"
+version = "1.7.0"
 description = "Agentic skills framework: plan ledger with ML outcome classification."
 authors = [{ name = "Alan Vo", email = "alanvo@gmail.com" }]
 readme = "README.md"
