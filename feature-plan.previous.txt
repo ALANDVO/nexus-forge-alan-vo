@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "current_feature": "llm-adapters",
+  "features": [
+    {
+      "id": "plan-ledger-core",
+      "title": "Plan ledger with ML outcome classification",
+      "status": "done",
+      "acceptance": [ … ],
+      "implementation": [ … ],
+      "tests": [ … ]
+    },
+    {
+      "id": "frontend-dashboard",
+      "title": "React dashboard for plans, tasks and results",
+      "status": "done",
+      "acceptance": [ … ],
+      "implementation": [ … ],
+      "tests": [ … ]
+    },
+    {
+      "id": "auth-oidc",
+      "title": "Keycloak OIDC authorization-code login (state/nonce/PKCE) with role-based authorization",
+      "status": "done",
+      "acceptance": [ … ],
+      "implementation": [ … ],
+      "tests": [ … ]
+    },
+    {
+      "id": "classifier-extended-tokens",
+      "title": "Extended classifier token support for XPASS/XFAIL/SKIPPED",
+      "status": "done",
+      "implementation": [
+        "backend/app/core/classifier.py"
+      ],
+      "tests": [
+        "backend/tests/test_classifier.py"
+      ]
+    },
+    {
+      "id": "llm-adapters",
+      "title": "Opt-in LLM providers (OpenAI-compatible, Anthropic, Gemini, Ollama) for advisory explanations",
+      "status": "in_progress",
+      "acceptance": [
+        "LLM_API_KEY only; server-side calls; bounded timeouts; redacted errors; advisory-only and grounded in records"
+      ],
+      "implementation": [
+        "backend/app/llm/adapters.py",
+        "backend/app/api/classify.py (llm_explain endpoint)"
+      ],
+      "tests": [
+        "backend/tests/test_llm.py"
+      ]
+    },
+    { … }
+  ]
+}
